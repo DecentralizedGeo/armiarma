@@ -5,9 +5,6 @@
 # log .txt s
 **/*.txt
 
-# launchers
-**/*.sh
-
 # docker-compose volumes
 app-data/*_db
 
@@ -16,3 +13,5 @@ app-data/*_db
 
 # IDE configuration
 .idea
+
+exports/
