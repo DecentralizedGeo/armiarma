@@ -10,12 +10,12 @@ services:
                 environment:
                         - POSTGRES_USER=user
                         - POSTGRES_PASSWORD=password
-                        - POSTGRES_DATABASE=armiarmadb
+                        - POSTGRES_DB=armiarmadb
                 volumes: 
                         - type: bind
                           source: ./app-data/init-armiarma.sql
                           target: /docker-entrypoint-initdb.d/docker_postgres_init.sql
-                        - ./app-data/postgresql_db:/var/lib/postgresql/data
+                        - ./app-data/postgresql_db:/var/lib/postgresql
                 networks: [ cluster ]
                 ports:
                         - "127.0.0.1:${DB_PORT}:5432"
