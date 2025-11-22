@@ -16,7 +16,7 @@ services:
                         - ./app-data/postgresql_db:/var/lib/postgresql
                 networks: [ cluster ]
                 ports:
-                        - "127.0.0.1:${DB_PORT}:5432"
+                        - "127.0.0.1:${DB_PORT:-5432}:5432"
                 healthcheck:
                   test: pg_isready -U user -d armiarmadb
                   interval: 10s
@@ -49,26 +49,63 @@ services:
                 ports: 
                         - "127.0.0.1:3000:3000"
 
+        # Ethereum Crawler
         eth_crawler:
                 image: "armiarma:latest"
+                container_name: armiarma_ethereum
                 build:
                         context: .
                         dockerfile: Dockerfile
+                env_file:
+                        - .env.common
+                        - .env.ethereum
                 command: |
                         eth2
-                        --log-level=${CRAWLER_LOG_LEVEL}
-                        --psql-endpoint=${CRAWLER_PSQL_ENDP}
-                        --peers-backup=${CRAWLER_PEERS_BACKUP}
-                        --fork-digest=${CRAWLER_FORK_DIGEST}
-                        --gossip-topic=${CRAWLER_GOSSIP_TOPIC}
-                        --subnet=${CRAWLER_SUBNET}
-                        --persist-connevents=${CRAWLER_PERSIST_CONNEVENTS}
+                        --log-level=${CRAWLER_LOG_LEVEL:-info}
+                        --psql-endpoint=${CRAWLER_PSQL_ENDP:-postgresql://user:password@db:5432/armiarmadb}
+                        --peers-backup=${CRAWLER_PEERS_BACKUP:-30m}
+                        --fork-digest=${CRAWLER_FORK_DIGEST:-}
+                        --gossip-topic=${CRAWLER_GOSSIP_TOPIC:-}
+                        --subnet=${CRAWLER_SUBNET:-}
+                        --persist-connevents=${CRAWLER_PERSIST_CONNEVENTS:-false}
                 restart: unless-stopped
                 depends_on: 
                   db:
                     condition: service_healthy
                 networks: [ cluster ]
                 ports: 
-                        - "${CRAWLER_PORT}:9020"
-                        - "127.0.0.1:${CRAWLER_METRICS_PORT}:9080"
-                        - "${CRAWLER_SSE_PORT}:9099"
+                        - "${CRAWLER_PORT:-9020}:9020"
+                        - "127.0.0.1:${CRAWLER_METRICS_PORT:-9080}:9080"
+                        - "${CRAWLER_SSE_PORT:-9099}:9099"
+                environment:
+                        - NETWORK=ethereum
+
+        # Polygon Crawler
+        polygon_crawler:
+                image: "armiarma:latest"
+                container_name: armiarma_polygon
+                build:
+                        context: .
+                        dockerfile: Dockerfile
+                env_file:
+                        - .env.common
+                        - .env.polygon
+                command: |
+                        polygon
+                        --log-level=${CRAWLER_LOG_LEVEL:-info}
+                        --psql-endpoint=${CRAWLER_PSQL_ENDP:-postgresql://user:password@db:5432/armiarmadb}
+                        --peers-backup=${CRAWLER_PEERS_BACKUP:-30m}
+                        --persist-connevents=${CRAWLER_PERSIST_CONNEVENTS:-false}
+                        --port=${CRAWLER_PORT:-30303}
+                        --metrics-port=9080
+                restart: unless-stopped
+                depends_on: 
+                  db:
+                    condition: service_healthy
+                networks: [ cluster ]
+                ports: 
+                        - "${CRAWLER_PORT:-30303}:30303/udp"  # P2P discovery
+                        - "${CRAWLER_PORT:-30303}:30303/tcp"  # P2P connections
+                        - "127.0.0.1:${CRAWLER_METRICS_PORT:-9081}:9080"  # Prometheus metrics
+                environment:
+                        - NETWORK=polygon

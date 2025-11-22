@@ -16,6 +16,7 @@ const (
 	EthereumNetwork NetworkType = "Ethereum CL"
 	IpfsNetwork     NetworkType = "IPFS"
 	FilecoinNetwork NetworkType = "Filecoin"
+	PolygonNetwork  NetworkType = "Polygon"
 
 	// Ethereum Consensus-Layer Clients
 	Prysm      ClientName = "prysm"
@@ -38,6 +39,9 @@ const (
 
 	// Filecoin
 	Lotus ClientName = "lotus"
+
+	// Polygon
+	Bor ClientName = "bor"
 
 	// Others
 	Others ClientName = "Others"
@@ -80,6 +84,11 @@ var IpfsClients map[ClientName][]string = map[ClientName][]string{
 // Filecoin Clients
 var FilecoinClients map[ClientName][]string = map[ClientName][]string{
 	Lotus: {"lotus"},
+}
+
+// Polygon Clients
+var PolygonClients map[ClientName][]string = map[ClientName][]string{
+	Bor: {"bor"},
 }
 
 // Valid OS
@@ -162,6 +171,24 @@ func ParseClientType(network NetworkType, userAgent string) (cliName string, cli
 			version = cleanVersion(cleanVersionLotus(splUserAgent[0]))
 		default:
 			log.Errorf("unable to determine client name for UserAgent %s", userAgent)
+			version = Unknown
+		}
+
+		cliName = string(client)
+		cliVersion = version
+
+	case PolygonNetwork:
+		// parse client name from Polygon Valid Clients
+		client := ClientNameParser(PolygonClients, splUserAgent[0])
+
+		// extract the version from the user
+		var version string
+		switch client {
+		case Bor:
+			version = cleanVersion(getVersionIfAny(splUserAgent, 1))
+		default:
+			// Silently skip non-Polygon clients (e.g., Ethereum nodes discovered via shared discv4 network)
+			log.Debugf("non-Polygon client discovered: %s (expected behavior on shared P2P network)", userAgent)
 			version = Unknown
 		}
 

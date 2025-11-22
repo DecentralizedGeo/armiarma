@@ -9,7 +9,8 @@
 app-data/*_db
 
 # configurations
-*.env
+.env
+.env.*
 
 # IDE configuration
 .idea

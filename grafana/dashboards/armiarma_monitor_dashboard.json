@@ -128,7 +128,7 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "/.*job=\"(.*)\".*/",
+            "regex": "/.*job=\"(.*?)\".*/",
             "renamePattern": "$1"
           }
         }
@@ -848,7 +848,7 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": "/.*job=\"(.*)\".*/",
+            "regex": "/.*job=\"(.*?)\".*/",
             "renamePattern": "$1"
           }
         }
@@ -1083,7 +1083,7 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*job=\"(.*)\".*",
+            "regex": ".*job=\"(.*?)\".*",
             "renamePattern": "$1"
           }
         }
@@ -1991,7 +1991,7 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*job=\"(.*)\"}.*",
+            "regex": ".*job=\"(.*?)\"}.*",
             "renamePattern": "$1"
           }
         }
@@ -2090,7 +2090,7 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*job=\"(.*)\"}.*",
+            "regex": ".*job=\"(.*?)\"}.*",
             "renamePattern": "$1"
           }
         }
@@ -2638,7 +2638,7 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*job=\"(.*)\"}.*",
+            "regex": ".*job=\"(.*?)\"}.*",
             "renamePattern": "$1"
           }
         }
@@ -2736,7 +2736,7 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*job=\"(.*)\"}.*",
+            "regex": ".*job=\"(.*?)\"}.*",
             "renamePattern": "$1"
           }
         }
@@ -3359,7 +3359,7 @@
         {
           "id": "renameByRegex",
           "options": {
-            "regex": ".*job=\"(.*)\"}.*",
+            "regex": ".*job=\"(.*?)\"}.*",
             "renamePattern": "$1"
           }
         }
@@ -3775,29 +3775,29 @@
       },
       {
         "current": {
-          "selected": false,
-          "text": "crawler",
-          "value": "crawler"
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
         },
         "datasource": {
           "type": "prometheus",
           "uid": "${Host}"
         },
-        "definition": "up",
+        "definition": "label_values(up, job)",
         "hide": 0,
-        "includeAll": false,
+        "includeAll": true,
         "label": "Crawler",
         "multi": true,
         "name": "Crawler",
         "options": [],
         "query": {
-          "query": "up",
+          "query": "label_values(up, job)",
           "refId": "StandardVariableQuery"
         },
         "refresh": 1,
-        "regex": "/.*job=\"(.*)\".*/",
+        "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
+        "sort": 1,
         "type": "query"
       }
     ]

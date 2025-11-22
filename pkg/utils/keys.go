@@ -5,7 +5,9 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	gcrypto "github.com/ethereum/go-ethereum/crypto"
+	"github.com/ethereum/go-ethereum/p2p/enode"
 	"github.com/libp2p/go-libp2p/core/crypto"
+	"github.com/libp2p/go-libp2p/core/peer"
 	"github.com/pkg/errors"
 )
 
@@ -95,4 +97,27 @@ func IsGethValidEthereumPublicKey(pubkey *ecdsa.PublicKey) bool {
 	// create new geth-crypto key to get the curve
 	ethCurve := gcrypto.S256()
 	return ethCurve.IsOnCurve(pubkey.X, pubkey.Y)
+}
+
+// ConvertEnodeToPeerID converts an enode.Node to a libp2p peer.ID
+func ConvertEnodeToPeerID(node *enode.Node) (peer.ID, error) {
+	// Get the public key from the enode
+	pubkey := node.Pubkey()
+	if pubkey == nil {
+		return "", errors.New("node has no public key")
+	}
+
+	// Convert ECDSA public key to libp2p public key
+	libp2pPubkey, err := ConvertECDSAPubkeyToSecp2561k(pubkey)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to convert ECDSA pubkey to libp2p")
+	}
+
+	// Get peer ID from libp2p public key
+	peerID, err := peer.IDFromPublicKey(libp2pPubkey)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get peer ID from pubkey")
+	}
+
+	return peerID, nil
 }

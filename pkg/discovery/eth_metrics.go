@@ -96,3 +96,14 @@ func (c *Discovery) AttnetsDistMetrics() *metrics.IndvMetrics {
 	}
 	return nodeDist
 }
+
+// GetPolygonMetrics returns a basic metrics module for Polygon crawler
+// (simplified version without Ethereum-specific metrics)
+func (d *Discovery) GetPolygonMetrics() *metrics.MetricsModule {
+	metricsMod := metrics.NewMetricsModule(
+		modName,
+		"general metrics about the Polygon crawler",
+	)
+	// No specific metrics for Polygon yet - can be added later
+	return metricsMod
+}

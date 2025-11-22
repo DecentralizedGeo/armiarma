@@ -7,6 +7,14 @@ alerting:
     - targets:
 rule_files:
 scrape_configs:
-  - job_name: 'crawler'
+  - job_name: 'ethereum_crawler'
     static_configs:
       - targets: ['eth_crawler:9080']
+        labels:
+          network: 'ethereum'
+  
+  - job_name: 'polygon_crawler'
+    static_configs:
+      - targets: ['polygon_crawler:9080']
+        labels:
+          network: 'polygon'

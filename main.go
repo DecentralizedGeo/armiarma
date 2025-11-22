@@ -44,6 +44,7 @@ func main() {
 		EnableBashCompletion: true,
 		Commands: []*cli.Command{
 			cmd.Eth2CrawlerCommand,
+			cmd.PolygonCrawlerCommand,
 			// cmd.IpfsCrawlerCommand,
 		},
 	}

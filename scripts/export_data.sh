@@ -106,19 +106,25 @@ export_peer_locations() {
     local query="COPY (
   SELECT 
     peer_info.peer_id,
+    peer_info.network,
     peer_info.ip,
     peer_info.port,
+    peer_info.user_agent,
+    peer_info.client_name,
+    peer_info.client_version,
     ips.country,
     ips.city,
     ips.lat,
     ips.lon,
     ips.isp,
     ips.org,
+    ips.as_raw,
+    ips.asname,
     ips.hosting
   FROM peer_info 
   INNER JOIN ips ON peer_info.ip = ips.ip
-  WHERE peer_info.deprecated = false
-  ORDER BY ips.country, ips.city
+  WHERE peer_info.deprecated = false $NETWORK_WHERE
+  ORDER BY peer_info.network, ips.country, ips.city
 ) TO STDOUT WITH CSV HEADER;"
     
     if can_connect_directly; then
@@ -153,6 +159,7 @@ export_all_ips() {
     lon,
     isp,
     org,
+    as_raw,
     asname,
     hosting,
     proxy,
@@ -186,10 +193,14 @@ export_country_stats() {
   SELECT 
     ips.country,
     ips.country_code,
-    COUNT(DISTINCT peer_info.peer_id) AS peer_count
+    COUNT(DISTINCT peer_info.peer_id) AS peer_count,
+    COUNT(DISTINCT ips.asname) as unique_asns,
+    SUM(CASE WHEN ips.hosting THEN 1 ELSE 0 END) as hosted_nodes,
+    ROUND(AVG(ips.lat)::numeric, 4) as avg_lat,
+    ROUND(AVG(ips.lon)::numeric, 4) as avg_lon
   FROM peer_info
   INNER JOIN ips ON peer_info.ip = ips.ip
-  WHERE peer_info.deprecated = false
+  WHERE peer_info.deprecated = false $NETWORK_WHERE
   GROUP BY ips.country, ips.country_code
   ORDER BY peer_count DESC
 ) TO STDOUT WITH CSV HEADER;"
@@ -213,19 +224,23 @@ export_country_stats() {
 # Export peer count by city
 export_city_stats() {
     local output_file="$OUTPUT_DIR/peer_count_by_city.csv"
-    log_info "Exporting peer count by city (top 50) to $output_file..."
+    log_info "Exporting peer count by city to $output_file..."
     
     local query="COPY (
   SELECT 
-    ips.country,
     ips.city,
-    COUNT(DISTINCT peer_info.peer_id) AS peer_count
+    ips.country,
+    ips.country_code,
+    COUNT(DISTINCT peer_info.peer_id) AS peer_count,
+    ips.lat,
+    ips.lon
   FROM peer_info
   INNER JOIN ips ON peer_info.ip = ips.ip
-  WHERE peer_info.deprecated = false
-  GROUP BY ips.country, ips.city
+  WHERE peer_info.deprecated = false $NETWORK_WHERE
+    AND ips.city != ''
+  GROUP BY ips.city, ips.country, ips.country_code, ips.lat, ips.lon
+  HAVING COUNT(*) >= 2
   ORDER BY peer_count DESC
-  LIMIT 50
 ) TO STDOUT WITH CSV HEADER;"
     
     if can_connect_directly; then
@@ -247,19 +262,21 @@ export_city_stats() {
 # Export hosting provider distribution
 export_hosting_stats() {
     local output_file="$OUTPUT_DIR/hosting_provider_distribution.csv"
-    log_info "Exporting hosting provider distribution (top 20) to $output_file..."
+    log_info "Exporting hosting provider distribution to $output_file..."
     
     local query="COPY (
   SELECT 
-    ips.org,
-    ips.hosting,
-    COUNT(DISTINCT peer_info.peer_id) AS peer_count
+    ips.org as provider,
+    COUNT(DISTINCT peer_info.peer_id) AS peer_count,
+    COUNT(DISTINCT ips.country) as countries,
+    ips.hosting
   FROM peer_info
   INNER JOIN ips ON peer_info.ip = ips.ip
-  WHERE peer_info.deprecated = false AND ips.hosting = true
+  WHERE peer_info.deprecated = false $NETWORK_WHERE
+    AND ips.org != ''
   GROUP BY ips.org, ips.hosting
+  HAVING COUNT(*) >= 2
   ORDER BY peer_count DESC
-  LIMIT 20
 ) TO STDOUT WITH CSV HEADER;"
     
     if can_connect_directly; then
@@ -278,6 +295,78 @@ export_hosting_stats() {
     log_info "Exported statistics for $row_count hosting providers to $output_file"
 }
 
+# Export peer count by Autonomous System (AS)
+export_as_stats() {
+    local output_file="$OUTPUT_DIR/peer_count_by_as.csv"
+    log_info "Exporting peer count by Autonomous System to $output_file..."
+    
+    local query="COPY (
+  SELECT 
+    ips.asname,
+    ips.as_raw,
+    ips.org,
+    COUNT(DISTINCT peer_info.peer_id) AS peer_count,
+    COUNT(DISTINCT ips.country) as countries,
+    SUM(CASE WHEN ips.hosting THEN 1 ELSE 0 END) as hosted_nodes
+  FROM peer_info
+  INNER JOIN ips ON peer_info.ip = ips.ip
+  WHERE peer_info.deprecated = false $NETWORK_WHERE
+    AND ips.asname != ''
+  GROUP BY ips.asname, ips.as_raw, ips.org
+  ORDER BY peer_count DESC
+) TO STDOUT WITH CSV HEADER;"
+    
+    if can_connect_directly; then
+        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$query" > "$output_file"
+    elif is_docker_running; then
+        log_warn "Direct connection failed, using Docker exec..."
+        local docker_user=$(get_docker_db_user)
+        local docker_db=$(get_docker_db_name)
+        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+    else
+        log_error "Cannot connect to database. Please check if the database is running."
+        return 1
+    fi
+    
+    local row_count=$(tail -n +2 "$output_file" | wc -l)
+    log_info "Exported statistics for $row_count autonomous systems to $output_file"
+}
+
+# Export client distribution
+export_client_stats() {
+    local output_file="$OUTPUT_DIR/client_distribution.csv"
+    log_info "Exporting client distribution to $output_file..."
+    
+    local query="COPY (
+  SELECT 
+    client_name,
+    client_version,
+    client_os,
+    client_arch,
+    COUNT(*) as peer_count,
+    ROUND(100.0 * COUNT(*) / SUM(COUNT(*)) OVER (), 2) as percentage
+  FROM peer_info
+  WHERE deprecated = false $NETWORK_WHERE
+  GROUP BY client_name, client_version, client_os, client_arch
+  ORDER BY peer_count DESC
+) TO STDOUT WITH CSV HEADER;"
+    
+    if can_connect_directly; then
+        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -c "$query" > "$output_file"
+    elif is_docker_running; then
+        log_warn "Direct connection failed, using Docker exec..."
+        local docker_user=$(get_docker_db_user)
+        local docker_db=$(get_docker_db_name)
+        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+    else
+        log_error "Cannot connect to database. Please check if the database is running."
+        return 1
+    fi
+    
+    local row_count=$(tail -n +2 "$output_file" | wc -l)
+    log_info "Exported statistics for $row_count client configurations to $output_file"
+}
+
 # Display usage information
 usage() {
     cat << EOF
@@ -291,10 +380,14 @@ EXPORT_TYPE:
     country     Export peer count by country
     city        Export peer count by city (top 50)
     hosting     Export hosting provider distribution (top 20)
+    as          Export peer count by Autonomous System (top 50)
+    clients     Export client distribution
     all         Export all of the above
 
 OPTIONS:
     -h, --help              Show this help message
+    -n, --network NETWORK   Filter by network (e.g., 'Polygon', 'Ethereum CL')
+                            If not specified, exports data for all networks
     -o, --output DIR        Output directory (default: ./exports)
     -H, --host HOST         Database host (overrides .env)
     -p, --port PORT         Database port (overrides .env)
@@ -315,14 +408,20 @@ CONFIGURATION:
         OUTPUT_DIR              Output directory
 
 EXAMPLES:
-    # Export peer locations (uses .env configuration)
+    # Export peer locations (all networks)
     $0 peers
 
-    # Export all data types
-    $0 all
+    # Export only Polygon data
+    $0 --network Polygon all
+
+    # Export only Ethereum data
+    $0 --network "Ethereum CL" all
 
     # Export to a specific directory
     $0 -o /tmp/exports peers
+
+    # Export Polygon data to custom directory
+    $0 --network Polygon -o ./exports/polygon all
 
     # Override .env settings with environment variables
     DB_HOST=192.168.1.100 DB_PORT=5433 $0 peers
@@ -339,12 +438,17 @@ EOF
 
 # Parse command-line arguments
 EXPORT_TYPE="peers"
+NETWORK_FILTER=""
 
 while [[ $# -gt 0 ]]; do
     case $1 in
         -h|--help)
             usage
             exit 0
+            ;;
+        -n|--network)
+            NETWORK_FILTER="$2"
+            shift 2
             ;;
         -o|--output)
             OUTPUT_DIR="$2"
@@ -370,7 +474,7 @@ while [[ $# -gt 0 ]]; do
             CONTAINER_NAME="$2"
             shift 2
             ;;
-        peers|ips|country|city|hosting|all)
+        peers|ips|country|city|hosting|as|clients|all)
             EXPORT_TYPE="$1"
             shift
             ;;
@@ -381,6 +485,13 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Build WHERE clause for network filter
+NETWORK_WHERE=""
+if [ -n "$NETWORK_FILTER" ]; then
+    NETWORK_WHERE="AND peer_info.network = '$NETWORK_FILTER'"
+    log_info "Filtering by network: $NETWORK_FILTER"
+fi
 
 # Main execution
 log_info "Starting data export..."
@@ -406,12 +517,20 @@ case $EXPORT_TYPE in
     hosting)
         export_hosting_stats
         ;;
+    as)
+        export_as_stats
+        ;;
+    clients)
+        export_client_stats
+        ;;
     all)
         export_peer_locations
         export_all_ips
         export_country_stats
         export_city_stats
         export_hosting_stats
+        export_as_stats
+        export_client_stats
         ;;
     *)
         log_error "Unknown export type: $EXPORT_TYPE"
