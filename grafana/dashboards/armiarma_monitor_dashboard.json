@@ -3788,7 +3788,7 @@
         "hide": 0,
         "includeAll": true,
         "label": "Crawler",
-        "multi": true,
+        "multi": false,
         "name": "Crawler",
         "options": [],
         "query": {
