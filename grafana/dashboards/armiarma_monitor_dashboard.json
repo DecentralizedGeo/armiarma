@@ -190,7 +190,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "sum by(job) (crawler_observed_client_distribution)",
+          "expr": "sum by(job) (crawler_observed_client_distribution{job=\"$Crawler\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
