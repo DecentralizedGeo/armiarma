@@ -80,6 +80,35 @@ services:
                 environment:
                         - NETWORK=ethereum
 
+        # Filecoin Crawler
+        filecoin_crawler:
+                image: "armiarma:latest"
+                container_name: armiarma_filecoin
+                build:
+                        context: .
+                        dockerfile: Dockerfile
+                env_file:
+                        - .env.common
+                        - .env.filecoin
+                command: |
+                        filecoin
+                        --log-level=${CRAWLER_LOG_LEVEL:-info}
+                        --psql-endpoint=${CRAWLER_PSQL_ENDP:-postgresql://user:password@db:5432/armiarmadb}
+                        --peers-backup=${CRAWLER_PEERS_BACKUP:-30m}
+                        --persist-connevents=${CRAWLER_PERSIST_CONNEVENTS:-false}
+                        --port=${CRAWLER_PORT:-1347}
+                        --metrics-port=9080
+                restart: unless-stopped
+                depends_on:
+                  db:
+                    condition: service_healthy
+                networks: [ cluster ]
+                ports:
+                        - "${CRAWLER_PORT:-1347}:1347/tcp"  # P2P connections
+                        - "127.0.0.1:${CRAWLER_METRICS_PORT:-9082}:9080"  # Prometheus metrics
+                environment:
+                        - NETWORK=filecoin
+
         # Polygon Crawler
         polygon_crawler:
                 image: "armiarma:latest"

@@ -161,16 +161,17 @@ func ParseClientType(network NetworkType, userAgent string) (cliName string, cli
 		cliVersion = version
 
 	case FilecoinNetwork:
-		// parse client name from Ethereum Valid Clients
+		// parse client name from Filecoin Valid Clients
 		client := ClientNameParser(FilecoinClients, splUserAgent[0])
 
-		// stract the version from the user
+		// extract the version from the user
 		var version string
 		switch client {
 		case Lotus:
 			version = cleanVersion(cleanVersionLotus(splUserAgent[0]))
 		default:
-			log.Errorf("unable to determine client name for UserAgent %s", userAgent)
+			// Silently skip non-Filecoin clients (e.g., IPFS/Ethereum nodes discovered via shared DHT network)
+			log.Debugf("non-Filecoin client discovered: %s (expected behavior on shared DHT network)", userAgent)
 			version = Unknown
 		}
 

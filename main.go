@@ -45,6 +45,7 @@ func main() {
 		Commands: []*cli.Command{
 			cmd.Eth2CrawlerCommand,
 			cmd.PolygonCrawlerCommand,
+			cmd.FilecoinCrawlerCommand,
 			// cmd.IpfsCrawlerCommand,
 		},
 	}

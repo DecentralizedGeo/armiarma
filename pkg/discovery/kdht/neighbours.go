@@ -145,7 +145,9 @@ func ReqIpfsPeerInfo(h host.Host, peerID peer.ID, hInfo *models.HostInfo) error 
 	protocols := make([]string, 0)
 	// Extract protocols
 	if ps, err := h.Peerstore().GetProtocols(peerID); err == nil {
-		copy(protocols, ps)
+		for _, p := range ps {
+			protocols = append(protocols, string(p))
+		}
 	}
 
 	pInfo := models.NewPeerInfo(

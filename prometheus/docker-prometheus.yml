@@ -18,3 +18,9 @@ scrape_configs:
       - targets: ['polygon_crawler:9080']
         labels:
           network: 'polygon'
+  
+  - job_name: 'filecoin_crawler'
+    static_configs:
+      - targets: ['filecoin_crawler:9080']
+        labels:
+          network: 'filecoin'
