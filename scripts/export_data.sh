@@ -149,23 +149,25 @@ export_all_ips() {
     log_info "Exporting all IPs with geolocation to $output_file..."
     
     local query="COPY (
-  SELECT 
-    ip,
-    country,
-    country_code,
-    city,
-    region_name,
-    lat,
-    lon,
-    isp,
-    org,
-    as_raw,
-    asname,
-    hosting,
-    proxy,
-    mobile
+  SELECT DISTINCT
+    ips.ip,
+    ips.country,
+    ips.country_code,
+    ips.city,
+    ips.region_name,
+    ips.lat,
+    ips.lon,
+    ips.isp,
+    ips.org,
+    ips.as_raw,
+    ips.asname,
+    ips.hosting,
+    ips.proxy,
+    ips.mobile
   FROM ips
-  ORDER BY country, city
+  INNER JOIN peer_info ON ips.ip = peer_info.ip
+  WHERE peer_info.deprecated = false $NETWORK_WHERE
+  ORDER BY ips.country, ips.city
 ) TO STDOUT WITH CSV HEADER;"
     
     if can_connect_directly; then
