@@ -3723,7 +3723,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT \n  ips.lat AS latitude,\n  ips.lon AS longitude, \n  ips.country,\n  ips.city,\n  COUNT(DISTINCT peer_info.peer_id) AS peer_count\nFROM peer_info\nINNER JOIN ips ON peer_info.ip = ips.ip\nWHERE peer_info.deprecated = false\nGROUP BY ips.lat, ips.lon, ips.country, ips.city\nORDER BY peer_count DESC;",
+          "rawSql": "SELECT \n  ips.lat AS latitude,\n  ips.lon AS longitude, \n  ips.country,\n  ips.city,\n  peer_info.network,\n  COUNT(DISTINCT peer_info.peer_id) AS peer_count\nFROM peer_info\nINNER JOIN ips ON peer_info.ip = ips.ip\nWHERE peer_info.deprecated = false\n  AND (\n    '${Crawler:raw}' = '$__all'\n    OR (peer_info.network = 'Ethereum CL' AND '${Crawler:raw}' ~* '^crawler$|ethereum')\n    OR (peer_info.network = 'Polygon' AND '${Crawler:raw}' ~* 'polygon')\n    OR (peer_info.network = 'IPFS' AND '${Crawler:raw}' ~* 'ipfs')\n    OR (peer_info.network = 'Filecoin' AND '${Crawler:raw}' ~* 'filecoin')\n  )\nGROUP BY ips.lat, ips.lon, ips.country, ips.city, peer_info.network\nORDER BY peer_count DESC;",
           "refId": "A",
           "select": [
             [
