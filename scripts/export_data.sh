@@ -100,7 +100,7 @@ get_docker_db_name() {
 
 # Export peer locations to CSV
 export_peer_locations() {
-    local output_file="$OUTPUT_DIR/peer_locations.csv"
+    local output_file="$OUTPUT_DIR/${NETWORK_PREFIX}peer_locations.csv"
     log_info "Exporting peer locations to $output_file..."
     
     local query="COPY (
@@ -145,7 +145,7 @@ export_peer_locations() {
 
 # Export all IPs with geolocation to CSV
 export_all_ips() {
-    local output_file="$OUTPUT_DIR/all_ips.csv"
+    local output_file="$OUTPUT_DIR/${NETWORK_PREFIX}all_ips.csv"
     log_info "Exporting all IPs with geolocation to $output_file..."
     
     local query="COPY (
@@ -186,7 +186,7 @@ export_all_ips() {
 
 # Export peer count by country
 export_country_stats() {
-    local output_file="$OUTPUT_DIR/peer_count_by_country.csv"
+    local output_file="$OUTPUT_DIR/${NETWORK_PREFIX}peer_count_by_country.csv"
     log_info "Exporting peer count by country to $output_file..."
     
     local query="COPY (
@@ -223,7 +223,7 @@ export_country_stats() {
 
 # Export peer count by city
 export_city_stats() {
-    local output_file="$OUTPUT_DIR/peer_count_by_city.csv"
+    local output_file="$OUTPUT_DIR/${NETWORK_PREFIX}peer_count_by_city.csv"
     log_info "Exporting peer count by city to $output_file..."
     
     local query="COPY (
@@ -261,7 +261,7 @@ export_city_stats() {
 
 # Export hosting provider distribution
 export_hosting_stats() {
-    local output_file="$OUTPUT_DIR/hosting_provider_distribution.csv"
+    local output_file="$OUTPUT_DIR/${NETWORK_PREFIX}hosting_provider_distribution.csv"
     log_info "Exporting hosting provider distribution to $output_file..."
     
     local query="COPY (
@@ -297,7 +297,7 @@ export_hosting_stats() {
 
 # Export peer count by Autonomous System (AS)
 export_as_stats() {
-    local output_file="$OUTPUT_DIR/peer_count_by_as.csv"
+    local output_file="$OUTPUT_DIR/${NETWORK_PREFIX}peer_count_by_as.csv"
     log_info "Exporting peer count by Autonomous System to $output_file..."
     
     local query="COPY (
@@ -334,7 +334,7 @@ export_as_stats() {
 
 # Export client distribution
 export_client_stats() {
-    local output_file="$OUTPUT_DIR/client_distribution.csv"
+    local output_file="$OUTPUT_DIR/${NETWORK_PREFIX}client_distribution.csv"
     log_info "Exporting client distribution to $output_file..."
     
     local query="COPY (
@@ -486,11 +486,16 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Build WHERE clause for network filter
+# Build WHERE clause for network filter and filename prefix
 NETWORK_WHERE=""
+NETWORK_PREFIX=""
 if [ -n "$NETWORK_FILTER" ]; then
     NETWORK_WHERE="AND peer_info.network = '$NETWORK_FILTER'"
+    # Convert network name to lowercase and replace spaces with underscores for filename
+    NETWORK_PREFIX="$(echo "$NETWORK_FILTER" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')_"
     log_info "Filtering by network: $NETWORK_FILTER"
+else
+    NETWORK_PREFIX="all_networks_"
 fi
 
 # Main execution
