@@ -46,6 +46,7 @@ func main() {
 			cmd.Eth2CrawlerCommand,
 			cmd.PolygonCrawlerCommand,
 			cmd.FilecoinCrawlerCommand,
+			cmd.CeloCrawlerCommand,
 			// cmd.IpfsCrawlerCommand,
 		},
 	}

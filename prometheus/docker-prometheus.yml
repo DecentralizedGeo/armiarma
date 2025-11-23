@@ -12,15 +12,21 @@ scrape_configs:
       - targets: ['eth_crawler:9080']
         labels:
           network: 'ethereum'
-  
+
   - job_name: 'polygon_crawler'
     static_configs:
       - targets: ['polygon_crawler:9080']
         labels:
           network: 'polygon'
-  
+
   - job_name: 'filecoin_crawler'
     static_configs:
       - targets: ['filecoin_crawler:9080']
         labels:
           network: 'filecoin'
+
+  - job_name: 'celo_crawler'
+    static_configs:
+      - targets: ['celo_crawler:9080']
+        labels:
+          network: 'celo'

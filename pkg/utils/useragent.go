@@ -17,6 +17,7 @@ const (
 	IpfsNetwork     NetworkType = "IPFS"
 	FilecoinNetwork NetworkType = "Filecoin"
 	PolygonNetwork  NetworkType = "Polygon"
+	CeloNetwork     NetworkType = "Celo"
 
 	// Ethereum Consensus-Layer Clients
 	Prysm      ClientName = "prysm"
@@ -42,6 +43,9 @@ const (
 
 	// Polygon
 	Bor ClientName = "bor"
+
+	// Celo
+	CeloGeth ClientName = "celo-geth"
 
 	// Others
 	Others ClientName = "Others"
@@ -89,6 +93,11 @@ var FilecoinClients map[ClientName][]string = map[ClientName][]string{
 // Polygon Clients
 var PolygonClients map[ClientName][]string = map[ClientName][]string{
 	Bor: {"bor"},
+}
+
+// Celo Clients
+var CeloClients map[ClientName][]string = map[ClientName][]string{
+	CeloGeth: {"celo", "geth"},
 }
 
 // Valid OS
@@ -190,6 +199,24 @@ func ParseClientType(network NetworkType, userAgent string) (cliName string, cli
 		default:
 			// Silently skip non-Polygon clients (e.g., Ethereum nodes discovered via shared discv4 network)
 			log.Debugf("non-Polygon client discovered: %s (expected behavior on shared P2P network)", userAgent)
+			version = Unknown
+		}
+
+		cliName = string(client)
+		cliVersion = version
+
+	case CeloNetwork:
+		// parse client name from Celo Valid Clients
+		client := ClientNameParser(CeloClients, splUserAgent[0])
+
+		// extract the version from the user
+		var version string
+		switch client {
+		case CeloGeth:
+			version = cleanVersion(getVersionIfAny(splUserAgent, 1))
+		default:
+			// Silently skip non-Celo clients (e.g., Ethereum nodes discovered via shared discv4 network)
+			log.Debugf("non-Celo client discovered: %s (expected behavior on shared P2P network)", userAgent)
 			version = Unknown
 		}
 

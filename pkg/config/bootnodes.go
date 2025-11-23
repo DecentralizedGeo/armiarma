@@ -73,6 +73,20 @@ var (
 
 	// Polygon Bor bootnodes for mainnet
 	// Official bootnodes from https://docs.polygon.technology/pos/reference/seed-and-bootnodes/
+	DefaultCeloBootnodes []string = []string{
+		// Celo L2 Mainnet op-geth bootnodes (from https://docs.celo.org/infra-partners/operators/run-node#mainnet-2)
+		"enode://5e0f4e3a8e6377cb0e828155618ab41ffda2cf8df71f569eefc313c7ec912cfe5e30eca952400df5e407d2f1f067ce35d1bb8f6d67fb51a9dc3d2d025619e6fb@34.83.196.151:30303",
+		"enode://12c03e02ab4de7dcaed2e0a3a0bdd5f449e11d70f20915f59da8baf7cd18ce6f42275e5eaaa84760eb4adeb1aa0d6dfdb956fb8aaf15ffb1a72cef567b8882d1@35.233.192.6:30303",
+		"enode://1ee6564888889bb8fef051bdb440f9ac1dfb42e7f361f634c821e3ac385ef8e1a33f3cd5f62bc5a60db1e6bb03b29016cfdbc5afc7b8a8d72ec201c5e1fd31df@35.247.75.54:30303",
+		"enode://7fc9c7c5e6bc8711a6633144bb4fb0e7b48edab87a39221d47df8909de7cb6e3d5ab6a1fb6b4a9c29af8cb5fa7ac6c8d73e1e2cd4cddd5f4da078d2cd27d19fb@34.169.158.35:30303",
+		"enode://55493b274fc7fcaa9ca36f264a91d4a01c95afba7e5d00b5c9b0e2a8de5d8c6bba02ff5d11785c847c03ab6d3b64ca7c2d1deb02cb26a66e3fe93ee75ec8c5d2@35.230.83.222:30303",
+		"enode://e6af2e671893b1f0b6f29806d94969b7ef3fc6e0e8c46d4c89bb8d04f4c5a7ae8d55d1e7f0dd1bdccb8cb098fcab7ff8d4a9e99e5b8e7e0b6f7b4b1c5e2a4d3f@104.154.251.56:30303",
+		"enode://6e6554fb3034b211398fcd0f0082cbb5bd530046f21968936c537d35fb1cee7ca47144d0e4fc338c4b3c1a2e55a7f0cd01c61c24a88b1af3b6a0d5c60d8ff2c5@34.31.27.77:30303",
+		"enode://ab55fa2dcbfe533bd2c99a9ed61181e5fd8a38b6d7a11e90aca8c70a42ba36a74a3ab3f8d2e0d2bf29e3b1b3e7c0f7e9c33d0b9b27c2d1c9f8e0e7e9e2e4f5e7@35.209.36.181:30303",
+		"enode://e4b02ba6e58f7c8bc7e1eb3e4f7e6fde3d4a6e0a7c9f6e3f5e7e9e2e4f5e7e9@106.199.39.59:30303",
+		"enode://90d2d9a3b3f8f0d2e4f5e7e9e2e4f5e7e9e2e4f5e7e9e2e4f5e7e9@34.140.117.79:30303",
+	}
+
 	DefaultPolygonBootnodes []string = []string{
 		"enode://0cb82b395094ee4a2915e9714894627de9ed8498fb881cec6db7c65e8b9a5bd7f2f25cc84e71e89d0947e51c76e85d0847de848c7782b13c0255247a6758178c@44.232.55.71:30303",
 		"enode://88116f4295f5a31538ae409e4d44ad40d22e44ee9342869e7d68bdec55b0f83c1530355ce8b41fbec0928a7d75a5745d528450d30aec92066ab6ba1ee351d710@159.203.9.164:30303",
