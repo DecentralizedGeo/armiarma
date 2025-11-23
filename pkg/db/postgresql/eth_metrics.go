@@ -99,8 +99,8 @@ func (db *DBClient) GetDeprecatedNodes() (int, error) {
 		select
 			count(deprecated)
 		from peer_info
-		where deprecated='true';
-		`).Scan(
+		where network=$1 and deprecated='true';
+		`, string(db.Network)).Scan(
 		&deprecatedCount,
 	)
 	if err != nil {

@@ -190,7 +190,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "sum by(job) (crawler_observed_client_distribution{job=\"$Crawler\"})",
+          "expr": "sum by(job) (crawler_observed_client_distribution)",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -521,7 +521,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "crawler_observed_client_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_observed_client_distribution{job=~\"$Crawler\"}",
           "format": "time_series",
           "instant": false,
           "interval": "",
@@ -738,7 +738,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "crawler_observed_client_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_observed_client_distribution{job=~\"$Crawler\"}",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -837,7 +837,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "host_connected_peers{job=\"$Crawler\"}",
+          "expr": "host_connected_peers{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -981,7 +981,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "host_supported_protocols{job=\"$Crawler\"}",
+          "expr": "host_supported_protocols{job=~\"$Crawler\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -1073,7 +1073,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "local_node_local_head_slot{job=\"$Crawler\"}",
+          "expr": "local_node_local_head_slot{job=~\"$Crawler\"}",
           "range": true,
           "refId": "A"
         }
@@ -1188,7 +1188,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "gossipsub_peers_per_topic{job=\"$Crawler\"}",
+          "expr": "gossipsub_peers_per_topic{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1288,7 +1288,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "gossipsub_peers_per_topic{job=\"$Crawler\"}",
+          "expr": "gossipsub_peers_per_topic{job=~\"$Crawler\"}",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -1433,7 +1433,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "gossipsub_peers_per_topic{job=\"$Crawler\"}",
+          "expr": "gossipsub_peers_per_topic{job=~\"$Crawler\"}",
           "format": "table",
           "instant": true,
           "interval": "",
@@ -1536,7 +1536,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "crawler_observed_client_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_observed_client_distribution{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1635,7 +1635,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "crawler_observed_client_version_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_observed_client_version_distribution{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1775,7 +1775,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "crawler_observed_client_version_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_observed_client_version_distribution{job=~\"$Crawler\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "{{label_name}}",
@@ -1881,7 +1881,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "sum by(instance) (crawler_observed_client_distribution{job=\"$Crawler\"})",
+          "expr": "sum by(instance) (crawler_observed_client_distribution{job=~\"$Crawler\"})",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -1980,7 +1980,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "crawler_deprecated_nodes{job=\"$Crawler\"}",
+          "expr": "crawler_deprecated_nodes{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -2079,7 +2079,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "crawler_node_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_node_distribution{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -2223,7 +2223,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "crawler_geographical_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_geographical_distribution{job=~\"$Crawler\"}",
           "format": "table",
           "instant": true,
           "legendFormat": "__auto",
@@ -2314,7 +2314,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "crawler_os_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_os_distribution{job=~\"$Crawler\"}",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -2413,7 +2413,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "crawler_arch_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_arch_distribution{job=~\"$Crawler\"}",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -2512,7 +2512,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "crawler_hosted_peers_distribution{job=\"$Crawler\"}",
+          "expr": "crawler_hosted_peers_distribution{job=~\"$Crawler\"}",
           "format": "time_series",
           "instant": true,
           "interval": "",
@@ -2627,7 +2627,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "peering_peers_attempted_last_iteration{job=\"$Crawler\"}",
+          "expr": "peering_peers_attempted_last_iteration{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -2725,7 +2725,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "peering_peerstore_iteration_time_secs{job=\"$Crawler\"}",
+          "expr": "peering_peerstore_iteration_time_secs{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -2823,7 +2823,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "peering_iteration_attempts_by_category_distribution{job=\"$Crawler\"}",
+          "expr": "peering_iteration_attempts_by_category_distribution{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -2921,7 +2921,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "peering_pruned_error_distribution{job=\"$Crawler\"}",
+          "expr": "peering_pruned_error_distribution{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -3026,7 +3026,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "peering_conn_error_distribution{job=\"$Crawler\"}",
+          "expr": "peering_conn_error_distribution{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -3136,7 +3136,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "peering_total_conn_error_distribution{job=\"$Crawler\", error_type!=\"--\"}",
+          "expr": "peering_total_conn_error_distribution{job=~\"$Crawler\", error_type!=\"--\"}",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -3248,7 +3248,7 @@
           },
           "editorMode": "builder",
           "exemplar": false,
-          "expr": "discovery_attnets_distribution{job=\"$Crawler\"}",
+          "expr": "discovery_attnets_distribution{job=~\"$Crawler\"}",
           "instant": true,
           "legendFormat": "__auto",
           "range": false,
@@ -3348,7 +3348,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "discovery_node_per_fork_distribution{job=\"$Crawler\"}",
+          "expr": "discovery_node_per_fork_distribution{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -3472,7 +3472,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "go_memstats_heap_alloc_bytes{job=\"$Crawler\"} / 1048576",
+          "expr": "go_memstats_heap_alloc_bytes{job=~\"$Crawler\"} / 1048576",
           "hide": false,
           "legendFormat": "__auto",
           "range": true,
@@ -3562,7 +3562,7 @@
             "uid": "${Host}"
           },
           "editorMode": "builder",
-          "expr": "go_threads{job=\"$Crawler\"}",
+          "expr": "go_threads{job=~\"$Crawler\"}",
           "legendFormat": "__auto",
           "range": true,
           "refId": "A"
@@ -3723,7 +3723,7 @@
           "group": [],
           "metricColumn": "none",
           "rawQuery": true,
-          "rawSql": "SELECT \n  ips.lat AS latitude,\n  ips.lon AS longitude, \n  ips.country,\n  ips.city,\n  peer_info.network,\n  COUNT(DISTINCT peer_info.peer_id) AS peer_count\nFROM peer_info\nINNER JOIN ips ON peer_info.ip = ips.ip\nWHERE peer_info.deprecated = false\n  AND (\n    '${Crawler:raw}' = '$__all'\n    OR (peer_info.network = 'Ethereum CL' AND '${Crawler:raw}' ~* '^crawler$|ethereum')\n    OR (peer_info.network = 'Polygon' AND '${Crawler:raw}' ~* 'polygon')\n    OR (peer_info.network = 'IPFS' AND '${Crawler:raw}' ~* 'ipfs')\n    OR (peer_info.network = 'Filecoin' AND '${Crawler:raw}' ~* 'filecoin')\n  )\nGROUP BY ips.lat, ips.lon, ips.country, ips.city, peer_info.network\nORDER BY peer_count DESC;",
+          "rawSql": "SELECT \n  ips.lat AS latitude,\n  ips.lon AS longitude, \n  ips.country,\n  ips.city,\n  peer_info.network,\n  COUNT(DISTINCT peer_info.peer_id) AS peer_count\nFROM peer_info\nINNER JOIN ips ON peer_info.ip = ips.ip\nWHERE peer_info.deprecated = false\n  AND (\n    '${Crawler:raw}' = '.*'\n    OR (peer_info.network = 'Ethereum CL' AND '${Crawler:raw}' ~* '^crawler$|ethereum')\n    OR (peer_info.network = 'Polygon' AND '${Crawler:raw}' ~* 'polygon')\n    OR (peer_info.network = 'IPFS' AND '${Crawler:raw}' ~* 'ipfs')\n    OR (peer_info.network = 'Filecoin' AND '${Crawler:raw}' ~* 'filecoin')\n  )\nGROUP BY ips.lat, ips.lon, ips.country, ips.city, peer_info.network\nORDER BY peer_count DESC;",
           "refId": "A",
           "select": [
             [
@@ -3774,6 +3774,7 @@
         "type": "datasource"
       },
       {
+        "allValue": ".*",
         "current": {
           "selected": true,
           "text": "All",

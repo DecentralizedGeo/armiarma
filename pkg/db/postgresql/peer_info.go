@@ -320,7 +320,7 @@ func (c *DBClient) GetNonDeprecatedPeers() ([]*models.RemoteConnectablePeer, err
 			network,
 			multi_addrs
 		FROM peer_info
-		WHERE deprecated='false';`)
+		WHERE network=$1 AND deprecated='false';`, string(c.Network))
 
 	// If there are no rows, don't panic
 	if err != nil && err != pgx.ErrNoRows {
