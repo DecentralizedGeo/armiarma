@@ -48,24 +48,8 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Validate required configuration
-validate_config() {
-    local missing_vars=()
-    
-    # Only validate DB credentials if we're not using Docker (which we'll detect later)
-    # For now, just check that at least some config exists
-    if [ -z "$DB_PORT" ] && [ -z "$CONTAINER_NAME" ]; then
-        log_error "No database configuration found."
-        log_error "Please ensure your .env file contains DB_PORT and/or CONTAINER_NAME"
-        exit 1
-    fi
-}
-
 # Create output directory if it doesn't exist
 mkdir -p "$OUTPUT_DIR"
-
-# Validate configuration
-validate_config
 
 # Function to check if we can connect directly to the database
 can_connect_directly() {
@@ -96,6 +80,29 @@ get_docker_db_user() {
 
 get_docker_db_name() {
     echo "${DB_NAME:-armiarmadb}"
+}
+
+# Get all unique networks from the database
+get_all_networks() {
+    local query="SELECT DISTINCT network FROM peer_info WHERE deprecated = false ORDER BY network;"
+
+    if can_connect_directly; then
+        log_info "Connecting directly to database..." >&2
+        PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -t -A -c "$query"
+    elif is_docker_running; then
+        log_info "Using Docker container: $CONTAINER_NAME" >&2
+        local docker_user=$(get_docker_db_user)
+        local docker_db=$(get_docker_db_name)
+        docker exec "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -t -A -c "$query"
+    else
+        log_error "Cannot connect to database."
+        log_error "Please ensure either:"
+        log_error "  1. PostgreSQL is running and accessible (check .env settings), or"
+        log_error "  2. Docker container with PostgreSQL is running"
+        log_error ""
+        log_error "To check for running containers: docker ps"
+        return 1
+    fi
 }
 
 # Export peer locations to CSV
@@ -133,7 +140,7 @@ export_peer_locations() {
         log_warn "Direct connection failed, using Docker exec..."
         local docker_user=$(get_docker_db_user)
         local docker_db=$(get_docker_db_name)
-        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+        docker exec "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
     else
         log_error "Cannot connect to database. Please check if the database is running."
         return 1
@@ -176,7 +183,7 @@ export_all_ips() {
         log_warn "Direct connection failed, using Docker exec..."
         local docker_user=$(get_docker_db_user)
         local docker_db=$(get_docker_db_name)
-        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+        docker exec "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
     else
         log_error "Cannot connect to database. Please check if the database is running."
         return 1
@@ -213,7 +220,7 @@ export_country_stats() {
         log_warn "Direct connection failed, using Docker exec..."
         local docker_user=$(get_docker_db_user)
         local docker_db=$(get_docker_db_name)
-        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+        docker exec "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
     else
         log_error "Cannot connect to database. Please check if the database is running."
         return 1
@@ -251,7 +258,7 @@ export_city_stats() {
         log_warn "Direct connection failed, using Docker exec..."
         local docker_user=$(get_docker_db_user)
         local docker_db=$(get_docker_db_name)
-        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+        docker exec "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
     else
         log_error "Cannot connect to database. Please check if the database is running."
         return 1
@@ -287,7 +294,7 @@ export_hosting_stats() {
         log_warn "Direct connection failed, using Docker exec..."
         local docker_user=$(get_docker_db_user)
         local docker_db=$(get_docker_db_name)
-        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+        docker exec "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
     else
         log_error "Cannot connect to database. Please check if the database is running."
         return 1
@@ -324,7 +331,7 @@ export_as_stats() {
         log_warn "Direct connection failed, using Docker exec..."
         local docker_user=$(get_docker_db_user)
         local docker_db=$(get_docker_db_name)
-        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+        docker exec "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
     else
         log_error "Cannot connect to database. Please check if the database is running."
         return 1
@@ -332,6 +339,47 @@ export_as_stats() {
     
     local row_count=$(tail -n +2 "$output_file" | wc -l)
     log_info "Exported statistics for $row_count autonomous systems to $output_file"
+}
+
+# Run exports based on EXPORT_TYPE (uses global NETWORK_WHERE and NETWORK_PREFIX)
+run_exports() {
+    case $EXPORT_TYPE in
+        peers)
+            export_peer_locations
+            ;;
+        ips)
+            export_all_ips
+            ;;
+        country)
+            export_country_stats
+            ;;
+        city)
+            export_city_stats
+            ;;
+        hosting)
+            export_hosting_stats
+            ;;
+        as)
+            export_as_stats
+            ;;
+        clients)
+            export_client_stats
+            ;;
+        all)
+            export_peer_locations
+            export_all_ips
+            export_country_stats
+            export_city_stats
+            export_hosting_stats
+            export_as_stats
+            export_client_stats
+            ;;
+        *)
+            log_error "Unknown export type: $EXPORT_TYPE"
+            usage
+            exit 1
+            ;;
+    esac
 }
 
 # Export client distribution
@@ -359,7 +407,7 @@ export_client_stats() {
         log_warn "Direct connection failed, using Docker exec..."
         local docker_user=$(get_docker_db_user)
         local docker_db=$(get_docker_db_name)
-        docker exec -i "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
+        docker exec "$CONTAINER_NAME" psql -U "$docker_user" -d "$docker_db" -c "$query" > "$output_file"
     else
         log_error "Cannot connect to database. Please check if the database is running."
         return 1
@@ -377,19 +425,21 @@ Usage: $0 [OPTIONS] [EXPORT_TYPE]
 Export peer location and IP data from the Armiarma PostgreSQL database.
 
 EXPORT_TYPE:
-    peers       Export active peer locations (default)
+    peers       Export active peer locations
     ips         Export all IPs with geolocation
     country     Export peer count by country
     city        Export peer count by city (top 50)
     hosting     Export hosting provider distribution (top 20)
     as          Export peer count by Autonomous System (top 50)
     clients     Export client distribution
-    all         Export all of the above
+    all         Export all of the above (default)
 
 OPTIONS:
     -h, --help              Show this help message
-    -n, --network NETWORK   Filter by network (e.g., 'Polygon', 'Ethereum CL')
-                            If not specified, exports data for all networks
+    -n, --network NETWORK   Filter by network. Special values:
+                            'all' - export for each network separately (default)
+                            Specific network name (e.g., 'Polygon', 'Ethereum CL')
+                            Empty string - combine all networks into single files
     -o, --output DIR        Output directory (default: ./exports)
     -H, --host HOST         Database host (overrides .env)
     -p, --port PORT         Database port (overrides .env)
@@ -410,26 +460,26 @@ CONFIGURATION:
         OUTPUT_DIR              Output directory
 
 EXAMPLES:
-    # Export peer locations (all networks)
+    # Export all data for each network separately (default)
+    $0
+
+    # Export only peer locations for each network
     $0 peers
 
     # Export only Polygon data
-    $0 --network Polygon all
+    $0 --network Polygon
 
-    # Export only Ethereum data
-    $0 --network "Ethereum CL" all
+    # Export all networks combined into single files
+    $0 --network ""
 
     # Export to a specific directory
-    $0 -o /tmp/exports peers
-
-    # Export Polygon data to custom directory
-    $0 --network Polygon -o ./exports/polygon all
+    $0 -o /tmp/exports
 
     # Override .env settings with environment variables
-    DB_HOST=192.168.1.100 DB_PORT=5433 $0 peers
-    
+    DB_HOST=192.168.1.100 DB_PORT=5433 $0
+
     # Override .env settings with command-line options
-    $0 -H 192.168.1.100 -p 5433 peers
+    $0 -H 192.168.1.100 -p 5433
 
 NOTE:
     The script loads database configuration from .env file.
@@ -439,8 +489,8 @@ EOF
 }
 
 # Parse command-line arguments
-EXPORT_TYPE="peers"
-NETWORK_FILTER=""
+EXPORT_TYPE="all"
+NETWORK_FILTER="all"
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -488,63 +538,51 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Build WHERE clause for network filter and filename prefix
-NETWORK_WHERE=""
-NETWORK_PREFIX=""
-if [ -n "$NETWORK_FILTER" ]; then
-    NETWORK_WHERE="AND peer_info.network = '$NETWORK_FILTER'"
-    # Convert network name to lowercase and replace spaces with underscores for filename
-    NETWORK_PREFIX="$(echo "$NETWORK_FILTER" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')_"
-    log_info "Filtering by network: $NETWORK_FILTER"
-else
-    NETWORK_PREFIX="all_networks_"
-fi
-
 # Main execution
 log_info "Starting data export..."
 if [ "$ENV_FILE_LOADED" = true ]; then
     log_info "Loaded configuration from .env file"
 fi
-log_info "Database: $DB_HOST:$DB_PORT/$DB_NAME (user: $DB_USER)"
+
+# Log database connection info if available
+if [ -n "$DB_HOST" ] && [ -n "$DB_PORT" ]; then
+    log_info "Database: $DB_HOST:$DB_PORT/$DB_NAME (user: $DB_USER)"
+elif [ -n "$CONTAINER_NAME" ]; then
+    log_info "Using Docker container: $CONTAINER_NAME"
+else
+    log_info "Will attempt to auto-detect Docker container..."
+fi
 log_info "Output directory: $OUTPUT_DIR"
 
-case $EXPORT_TYPE in
-    peers)
-        export_peer_locations
-        ;;
-    ips)
-        export_all_ips
-        ;;
-    country)
-        export_country_stats
-        ;;
-    city)
-        export_city_stats
-        ;;
-    hosting)
-        export_hosting_stats
-        ;;
-    as)
-        export_as_stats
-        ;;
-    clients)
-        export_client_stats
-        ;;
-    all)
-        export_peer_locations
-        export_all_ips
-        export_country_stats
-        export_city_stats
-        export_hosting_stats
-        export_as_stats
-        export_client_stats
-        ;;
-    *)
-        log_error "Unknown export type: $EXPORT_TYPE"
-        usage
+# Handle --network all (export for each network separately)
+if [ "$NETWORK_FILTER" = "all" ]; then
+    log_info "Exporting for all networks separately..."
+    networks=$(get_all_networks)
+    if [ -z "$networks" ]; then
+        log_error "No networks found in database"
         exit 1
-        ;;
-esac
+    fi
+
+    while IFS= read -r network; do
+        [ -z "$network" ] && continue
+        log_info "Processing network: $network"
+        NETWORK_WHERE="AND peer_info.network = '$network'"
+        NETWORK_PREFIX="$(echo "$network" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')_"
+        run_exports
+    done <<< "$networks"
+else
+    # Build WHERE clause for single network filter or all combined
+    NETWORK_WHERE=""
+    NETWORK_PREFIX=""
+    if [ -n "$NETWORK_FILTER" ]; then
+        NETWORK_WHERE="AND peer_info.network = '$NETWORK_FILTER'"
+        NETWORK_PREFIX="$(echo "$NETWORK_FILTER" | tr '[:upper:]' '[:lower:]' | tr ' ' '_')_"
+        log_info "Filtering by network: $NETWORK_FILTER"
+    else
+        NETWORK_PREFIX="all_networks_"
+    fi
+    run_exports
+fi
 
 log_info "Export completed successfully!"
 log_info "Files are available in: $OUTPUT_DIR"

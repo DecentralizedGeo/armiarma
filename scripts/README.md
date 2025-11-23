@@ -19,14 +19,14 @@ Scripts for exporting peer and geolocation data from the Armiarma PostgreSQL dat
 ### Quick Start
 
 ```bash
-# Export all Polygon data
-./scripts/export_data.sh --network Polygon all
+# Export all data for each network separately (default)
+./scripts/export_data.sh
 
-# Export Ethereum peer locations
-./scripts/export_data.sh --network "Ethereum CL" peers
+# Export only Polygon data
+./scripts/export_data.sh --network Polygon
 
-# Export all networks (no filter)
-./scripts/export_data.sh all
+# Export all networks combined into single files
+./scripts/export_data.sh --network ""
 ```
 
 ### Usage
@@ -35,18 +35,20 @@ Scripts for exporting peer and geolocation data from the Armiarma PostgreSQL dat
 ./scripts/export_data.sh [OPTIONS] [EXPORT_TYPE]
 
 EXPORT_TYPE:
-    peers       Export active peer locations (default)
+    peers       Export active peer locations
     ips         Export all IPs with geolocation
     country     Export peer count by country
     city        Export peer count by city
     hosting     Export hosting provider distribution
     as          Export peer count by Autonomous System
     clients     Export client distribution
-    all         Export all of the above
+    all         Export all of the above (default)
 
 OPTIONS:
-    -n, --network NETWORK   Filter by network (e.g., 'Polygon', 'Ethereum CL')
-                            If not specified, exports data for all networks
+    -n, --network NETWORK   Filter by network. Special values:
+                            'all' - export for each network separately (default)
+                            Specific network name (e.g., 'Polygon', 'Ethereum CL')
+                            Empty string - combine all networks into single files
     -o, --output DIR        Output directory (default: ./exports)
     -H, --host HOST         Database host (overrides .env)
     -p, --port PORT         Database port (overrides .env)
@@ -57,50 +59,52 @@ OPTIONS:
 
 ### Examples
 
-#### Export Polygon Data
+#### Default: Export All Networks Separately
+
+```bash
+# Export all data for each network (creates polygon_*, ethereum_cl_*, etc.)
+./scripts/export_data.sh
+
+# Just peer locations for each network
+./scripts/export_data.sh peers
+```
+
+#### Export Single Network
 
 ```bash
 # All Polygon exports
-./scripts/export_data.sh --network Polygon all
+./scripts/export_data.sh --network Polygon
 
 # Just Polygon peer locations
 ./scripts/export_data.sh --network Polygon peers
 
 # Polygon data to custom directory
-./scripts/export_data.sh --network Polygon -o ./exports/polygon all
+./scripts/export_data.sh --network Polygon -o ./exports/polygon
 ```
 
-#### Export Ethereum Data
+#### Export All Networks Combined
 
 ```bash
-# All Ethereum exports
-./scripts/export_data.sh --network "Ethereum CL" all
+# Combine all networks into single files (all_networks_* prefix)
+./scripts/export_data.sh --network ""
 
-# Just country distribution
-./scripts/export_data.sh --network "Ethereum CL" country
-```
-
-#### Export All Networks
-
-```bash
-# Export all data from all networks
-./scripts/export_data.sh all
-
-# Just peer locations (all networks)
-./scripts/export_data.sh peers
+# Just peer locations combined
+./scripts/export_data.sh --network "" peers
 ```
 
 ### Output Files
 
-When using `all` export type, the script creates:
+When using `all` export type, the script creates (prefixed by network name):
 
-- `peer_locations.csv` - Active peer locations with geolocation
-- `all_ips.csv` - All IPs with geolocation data
-- `peer_count_by_country.csv` - Node count per country
-- `peer_count_by_city.csv` - Node count per city
-- `hosting_provider_distribution.csv` - Hosting provider statistics
-- `peer_count_by_as.csv` - Distribution by Autonomous System
-- `client_distribution.csv` - Client software distribution
+- `{network}_peer_locations.csv` - Active peer locations with geolocation
+- `{network}_all_ips.csv` - All IPs with geolocation data
+- `{network}_peer_count_by_country.csv` - Node count per country
+- `{network}_peer_count_by_city.csv` - Node count per city
+- `{network}_hosting_provider_distribution.csv` - Hosting provider statistics
+- `{network}_peer_count_by_as.csv` - Distribution by Autonomous System
+- `{network}_client_distribution.csv` - Client software distribution
+
+For example: `polygon_peer_locations.csv`, `ethereum_cl_peer_locations.csv`
 
 ### Configuration
 
@@ -123,11 +127,11 @@ You can override any value with command-line options or environment variables.
 The script automatically detects if you're running in Docker and uses the appropriate connection method:
 
 ```bash
-# Using Docker container name from .env
-./scripts/export_data.sh --network Polygon all
+# Using Docker container name from .env (exports all networks)
+./scripts/export_data.sh
 
 # Override container name
-./scripts/export_data.sh -c my-postgres-container --network Polygon all
+./scripts/export_data.sh -c my-postgres-container
 ```
 
 ### Network Names
@@ -150,11 +154,11 @@ SELECT DISTINCT network FROM peer_info;
 Export data for GeoBeat analysis:
 
 ```bash
-# Export Polygon data for geobeat
-./scripts/export_data.sh --network Polygon -o /path/to/geobeat/data/raw all
+# Export all networks for geobeat
+./scripts/export_data.sh -o /path/to/geobeat/data/raw
 
 # Or export to default location and copy
-./scripts/export_data.sh --network Polygon all
+./scripts/export_data.sh
 cp ./exports/*.csv /path/to/geobeat/data/raw/
 ```
 
@@ -206,22 +210,12 @@ chmod +x ./scripts/export_data.sh
 
 DATE=$(date +%Y%m%d)
 
-# Export Polygon data
-./scripts/export_data.sh \
-  --network Polygon \
-  -o ./exports/polygon_$DATE \
-  all
+# Export all networks separately (default behavior)
+./scripts/export_data.sh -o ./exports/$DATE
 
-# Export Ethereum data
-./scripts/export_data.sh \
-  --network "Ethereum CL" \
-  -o ./exports/ethereum_$DATE \
-  all
-
-# Create combined export for comparison
-./scripts/export_data.sh \
-  -o ./exports/all_networks_$DATE \
-  all
+# Or export specific networks only
+./scripts/export_data.sh --network Polygon -o ./exports/polygon_$DATE
+./scripts/export_data.sh --network "Ethereum CL" -o ./exports/ethereum_$DATE
 
 echo "Exports complete for $DATE"
 ```
