@@ -186,7 +186,9 @@ install_claude_code() {
 
     # Install Node.js if needed
     if ! command -v node &>/dev/null; then
-        curl -fsSL https://deb.nodesource.com/setup_20.x | $SUDO -E bash -
+        curl -fsSL https://deb.nodesource.com/setup_20.x -o /tmp/nodesource_setup.sh
+        $SUDO bash /tmp/nodesource_setup.sh
+        rm /tmp/nodesource_setup.sh
         $SUDO apt-get install -y -qq nodejs
     fi
 
