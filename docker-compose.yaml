@@ -64,9 +64,6 @@ services:
                         --log-level=${CRAWLER_LOG_LEVEL:-info}
                         --psql-endpoint=${CRAWLER_PSQL_ENDP:-postgresql://user:password@db:5432/armiarmadb}
                         --peers-backup=${CRAWLER_PEERS_BACKUP:-30m}
-                        --fork-digest=${CRAWLER_FORK_DIGEST:-}
-                        --gossip-topic=${CRAWLER_GOSSIP_TOPIC:-}
-                        --subnet=${CRAWLER_SUBNET:-}
                         --persist-connevents=${CRAWLER_PERSIST_CONNEVENTS:-false}
                 restart: unless-stopped
                 depends_on: 
